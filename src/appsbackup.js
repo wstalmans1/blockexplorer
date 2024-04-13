@@ -20,9 +20,9 @@ function App() {
       const latestBlockNumber = await alchemy.core.getBlockNumber();
       setBlockNumber(latestBlockNumber);
 
-      // Using the fetched block number to get block information
+      // Using the fetched block number to get block information with transactions
       if (latestBlockNumber != null) {
-        const info = await alchemy.core.getBlock(latestBlockNumber);
+        const info = await alchemy.core.getBlockWithTransactions(latestBlockNumber);
         setBlockInfo(info);
       }
     }

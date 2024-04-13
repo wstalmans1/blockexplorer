@@ -13,39 +13,63 @@ const alchemy = new Alchemy(settings);
 function App() {
   const [blockNumber, setBlockNumber] = useState(null);
   const [blockInfo, setBlockInfo] = useState(null);
+  const [transactionDetails, setTransactionDetails] = useState(null);
 
   useEffect(() => {
     async function fetchBlockData() {
-      // Fetch the latest block number
       const latestBlockNumber = await alchemy.core.getBlockNumber();
       setBlockNumber(latestBlockNumber);
-
-      // Using the fetched block number to get block information with transactions
       if (latestBlockNumber != null) {
         const info = await alchemy.core.getBlockWithTransactions(latestBlockNumber);
         setBlockInfo(info);
       }
     }
-
     fetchBlockData();
-  }, []); // Ensure this effect runs only once on component mount
+  }, []);
 
-  // Function to render block information in a readable format
-  const renderBlockInfo = (blockInfo) => {
-    return (
+  const getTransactionReceipt = async (txHash) => {
+    const receipt = await alchemy.core.getTransactionReceipt(txHash);
+    setTransactionDetails(receipt);
+  };
+
+  const handleTransactionClick = (txHash) => {
+    getTransactionReceipt(txHash);
+  };
+
+  // Render functions
+  const renderBlockInfo = (blockInfo) => (
+    <ul>
+      {Object.entries(blockInfo).map(([key, value]) => {
+        if (key === 'transactions' && Array.isArray(value)) {
+          return value.map((tx, index) => (
+            <li key={index}>
+              <strong>Transaction {index}:</strong> {tx.hash}
+              <button onClick={() => handleTransactionClick(tx.hash)}>Get Receipt</button>
+            </li>
+          ));
+        }
+        return <li key={key}><strong>{key}:</strong> {JSON.stringify(value)}</li>;
+      })}
+    </ul>
+  );
+
+  const renderTransactionDetails = (details) => (
+    details ? <div>
+      <h3>Transaction Receipt:</h3>
       <ul>
-        {Object.entries(blockInfo).map(([key, value]) => (
+        {Object.entries(details).map(([key, value]) => (
           <li key={key}><strong>{key}:</strong> {JSON.stringify(value, null, 2)}</li>
         ))}
       </ul>
-    );
-  };
+    </div> : null
+  );
 
   return ( 
     <div className="App">
       <div>Block Number from Mainnet: {blockNumber}</div>
       <div>Block Info:</div>
       {blockInfo ? renderBlockInfo(blockInfo) : <p>Loading block information...</p>}
+      <div>{renderTransactionDetails(transactionDetails)}</div>
     </div>  
   );
 }
