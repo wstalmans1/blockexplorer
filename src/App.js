@@ -37,39 +37,54 @@ function App() {
   };
 
   // Render functions
-  const renderBlockInfo = (blockInfo) => (
-    <ul>
-      {Object.entries(blockInfo).map(([key, value]) => {
-        if (key === 'transactions' && Array.isArray(value)) {
-          return value.map((tx, index) => (
-            <li key={index}>
-              <strong>Transaction {index}:</strong> {tx.hash}
-              <button onClick={() => handleTransactionClick(tx.hash)}>Get Receipt</button>
-            </li>
-          ));
-        }
-        return <li key={key}><strong>{key}:</strong> {JSON.stringify(value)}</li>;
-      })}
-    </ul>
+  const renderBlockInfo = () => (
+    blockInfo ? (
+      <ul>
+        <li><strong>Hash:</strong> {blockInfo.hash}</li>
+        <li><strong>Number of Transactions:</strong> {blockInfo.transactions.length}</li>
+      </ul>
+    ) : <p>Loading block information...</p>
   );
 
-  const renderTransactionDetails = (details) => (
-    details ? <div>
+  const renderTransactionList = () => (
+    <div className="transaction-list">
+      {blockInfo ? (
+        <ul>
+          {blockInfo.transactions.map((tx, index) => (
+            <li key={index}>
+              <button onClick={() => handleTransactionClick(tx.hash)}>
+                Transaction {index + 1}: {tx.hash}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Loading transactions...</p>}
+    </div>
+  );
+
+  const renderTransactionDetails = () => (
+    <div className="transaction-details">
       <h3>Transaction Receipt:</h3>
-      <ul>
-        {Object.entries(details).map(([key, value]) => (
-          <li key={key}><strong>{key}:</strong> {JSON.stringify(value, null, 2)}</li>
-        ))}
-      </ul>
-    </div> : null
+      {transactionDetails ? (
+        <ul>
+          {Object.entries(transactionDetails).map(([key, value]) => (
+            <li key={key}><strong>{key}:</strong> {JSON.stringify(value, null, 2)}</li>
+          ))}
+        </ul>
+      ) : <p>Select a transaction to see the details.</p>}
+    </div>
   );
 
   return ( 
     <div className="App">
-      <div>Block Number from Mainnet: {blockNumber}</div>
-      <div>Block Info:</div>
-      {blockInfo ? renderBlockInfo(blockInfo) : <p>Loading block information...</p>}
-      <div>{renderTransactionDetails(transactionDetails)}</div>
+      <div className="block-info">
+        <h2>Block Number: {blockNumber}</h2>
+        {renderBlockInfo()}
+      </div>
+      <div className="split-view">
+        {renderTransactionList()}
+        {renderTransactionDetails()}
+      </div>
     </div>  
   );
 }
